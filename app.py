@@ -28,7 +28,10 @@ if uploaded_file is not None:
             try:
                 # Enviar a la IA (configurado para entender Español)
                 transcriber = aai.Transcriber()
-                config = aai.TranscriptionConfig(language_code="es") 
+                config = aai.TranscriptionConfig(
+    speech_models=["universal-3-pro", "universal-2"],
+    language_code="es"
+) 
                 transcript = transcriber.transcribe(temp_video_path, config=config)
                 
                 if transcript.status == aai.TranscriptStatus.error:
