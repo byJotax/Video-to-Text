@@ -9,7 +9,7 @@ st.title("📹 Transcriptor de Múltiples Videos")
 st.write("Sube uno o varios videoclips y la IA los transcribirá todos.")
 
 # Configuración de la API (Asegúrate de tenerla en Secrets o ponerla aquí)
-aai.settings.api_key = st.secrets["ASSEMBLYAI_API_KEY"]
+aai.settings.api_key = st.secrets["6322dc32094e44ee954749f961ac88b2"]
 
 # CAMBIO CLAVE: Añadimos 'accept_multiple_files=True'
 uploaded_files = st.file_uploader(
