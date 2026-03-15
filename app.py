@@ -3,57 +3,50 @@ import assemblyai as aai
 import tempfile
 import os
 
-# Configuración de la página
-st.set_page_config(page_title="Multi-Transcriptor", page_icon="📹")
-st.title("📹 Transcriptor de Múltiples Videos")
-st.write("Sube uno o varios videoclips y la IA los transcribirá todos.")
+# 1. Configuración de la página
+st.set_page_config(page_title="Transcriptor Pro", page_icon="📹")
+st.title("📹 Transcriptor de Videos")
 
-# Configuración de la API (Asegúrate de tenerla en Secrets o ponerla aquí)
-aai.settings.api_key = st.secrets["6322dc32094e44ee954749f961ac88b2"]
+# 2. Configuración de la API (Usa el nombre de la etiqueta, no el valor directo)
+try:
+    aai.settings.api_key = st.secrets["ASSEMBLYAI_API_KEY"]
+except:
+    st.error("⚠️ Falta la API Key en los Secrets de Streamlit.")
 
-# CAMBIO CLAVE: Añadimos 'accept_multiple_files=True'
+# 3. Subida de archivos
 uploaded_files = st.file_uploader(
-    "Selecciona tus videos", 
+    "Selecciona uno o varios videos", 
     type=["mp4", "mov", "avi", "mkv"], 
     accept_multiple_files=True
 )
 
 if uploaded_files:
-    st.info(f"Has subido {len(uploaded_files)} videos. Haz clic abajo para empezar.")
-    
-    if st.button("Transcribir todo"):
-        # Recorremos cada archivo subido
-        for i, uploaded_file in enumerate(uploaded_files):
-            # Usamos un 'expander' para que cada video tenga su propia sección colapsable
-            with st.expander(f"Video {i+1}: {uploaded_file.name}", expanded=True):
-                with st.spinner(f"Procesando '{uploaded_file.name}'..."):
-                    
-                    # 1. Crear archivo temporal
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_video:
-                        temp_video.write(uploaded_file.read())
-                        temp_video_path = temp_video.name
+    if st.button("Empezar Transcripción"):
+        for i, file in enumerate(uploaded_files):
+            with st.expander(f"Resultado: {file.name}", expanded=True):
+                with st.spinner("Procesando..."):
+                    # Crear temporal
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+                        tmp.write(file.read())
+                        path = tmp.name
                     
                     try:
-                        # 2. Configurar y Transcribir (con el modelo corregido)
                         transcriber = aai.Transcriber()
+                        # Configuración obligatoria actualizada
                         config = aai.TranscriptionConfig(
                             speech_models=["universal-3-pro", "universal-2"],
                             language_code="es"
                         )
                         
-                        transcript = transcriber.transcribe(temp_video_path, config=config)
+                        transcript = transcriber.transcribe(path, config=config)
                         
                         if transcript.status == aai.TranscriptStatus.error:
                             st.error(f"Error: {transcript.error}")
                         else:
-                            st.success(f"¡Listo!")
-                            # Mostramos el texto resultante
-                            st.text_area("Transcripción:", transcript.text, height=200, key=f"text_{i}")
-                    
+                            st.success("¡Completado!")
+                            st.text_area("Texto extraído:", transcript.text, height=200, key=f"area_{i}")
                     except Exception as e:
-                        st.error(f"Ocurrió un error inesperado: {e}")
+                        st.error(f"Error inesperado: {e}")
                     finally:
-                        # Limpiar temporal
-                        os.remove(temp_video_path)
-
-        st.balloons() # ¡Efecto visual al terminar todo!
+                        os.remove(path)
+        st.balloons()
